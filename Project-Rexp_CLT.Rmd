@@ -1,8 +1,8 @@
 ---
-title: "Coursera Statistical Inference Project - Part 1 Exponential Distribution Simulation "
+title: 'Coursera Statistical Inference Project - Part 1 Exponential Distribution Simulation '
 author: "Filomena Ciccarelli"
 date: "29 March 2016"
-output: pdf_document
+output: html_document
 ---
 
 ```{r global_options, echo=FALSE}
