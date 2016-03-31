@@ -1,0 +1,117 @@
+---
+title: 'Impact of supplement types and and vitamin C on tooth growth in guinea Pigs '
+author: "Filomena Ciccarelli"
+date: "31 March 2016"
+output: html_document
+---
+# Overview
+In this report we analyse the *ThootGrowth* data in R datasets package. The data looks at the effect that supplement types and dose levels have on the guinea pig tooth growth. The report is structured in three sections. In section one we load the data and carry out some preliminary exploratory data analysis. Section two
+looks at confidence intervals and hypothesis tests to compare the tooth growth by supplement and dose. Conclusions are in the last section of the report.
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(echo=TRUE,warning=FALSE, message=FALSE)
+```
+
+## Load data plus Preliminary exploratory data analysis
+```{r}
+library(datasets)
+data(ToothGrowth)
+tg=ToothGrowth
+```
+The *ToothGrowth* data summary 
+```{r, echo=FALSE}
+str(ToothGrowth)
+```
+Indicates that the data consists of 60 observations of 3 variables: 
+
+* `len`: Tooth length in millimeters (numeric variable)
+* `supp`: Supplement type (factor variable with levels VC and OJ)
+* `dose`: Dose in milligrams (numeric variable)
+
+The following table
+```{r}
+with(tg, table(dose, supp))
+```
+Indicates that *dose* can be treated as a factor as there are only three dose levels of Vitamin C (0.5,1, 2 mg). The 20 pigs assigned to each dose level were in turn equally split between two delivery methods i.e. Orange Juice (OJ) and Ascorbic Acid (VC). 
+
+```{r}
+tg$dose<-as.factor(tg$dose)
+
+```
+The table below indicates that an analysis by supplement type and dose level is more meaningful as there seems to be variation of the average tooth growth by these variables.
+```{r}
+library(dplyr)
+aggregate(tg$len,list(Supplement_type=tg$supp,supplement_dose=tg$dose),mean)
+```
+The boxplot below indicates that overall the supplement dosage increase has a positive growth impact on guinea pig thooth. Specifically, orange juice is more effective than ascorbic acid for lower dosage (i.e. 0.5 and 1 mg/day). Both supplement types deliver the same tooth growth when the dose amount is 2 mg/day.  
+
+```{r}
+library(ggplot2)
+tg=ToothGrowth
+levels(tg$supp)<-c("Orange Juice","Ascorbic Acid")
+ggplot(tg, aes(x=factor(dose), y=len)) +
+  geom_boxplot(aes(fill = factor(dose))) + 
+  facet_grid(. ~ supp) +
+  xlab('Dose (mg)') +
+  ylab('Tooth length (mm)') +
+  ggtitle('Guinea Pig tooth length by dose level and supplement type')
+```
+
+# Confidence intervals and hypothesis tests to compare the tooth growth by supplement and dose
+To ascertain whether there is a real difference between the groups by dose and delivery type, we will use a two-sided unpaired t-test and observe the confidence intervals and p-values.The null hypothesis in all the cases is that there is no difference in the tooth length means between the two groups.
+
+## Difference in supplement types
+### Hypothesis 1
+H1: Orange juice and ascorbic acid deliver the same tooth growth across the data set.
+```{r}
+hp1<-t.test(len~supp,data=tg,paired=FALSE,var.equal=FALSE)
+hp1$conf.int
+hp1$p.value
+```
+The confidence interval includes 0 and the p-value is greater than the significance level $\alpha=0.05$ which means we fail to reject the null hypothesis. 
+
+## Difference in dose levels
+### Hypothesis 2 - Dose 0.5 mg/day
+
+H2: For the dosage of 0.5mg/day, the orange juice and ascorbic acid supplements deliver the same tooth growth across the data set.
+```{r}
+hp2<-t.test(len~supp,data=subset(tg,dose==0.5),paired=FALSE,var.equal=FALSE)
+hp2$conf.int
+hp2$p.value
+```
+The confidence interval does not includes 0 and the p-value is smaller than $\alpha=0.05$. The null hypothesis can be rejected.The alternative hypothesis that 0.5mg/day dose of orange juice delivers more tooth growth than ascorbic acid is accepted.
+
+### Hypothesis 3 - Dose 1 mg/day
+
+H3: For the dosage of 1mg/day, the orange juice and ascorbic acid supplements deliver the same tooth growth across the data set.
+```{r}
+hp3<-t.test(len~supp,data=subset(tg,dose==1),paired=FALSE,var.equal=FALSE)
+hp3$conf.int
+hp3$p.value
+```
+The confidence interval does not includes 0 and the p-value is smaller than $\alpha=0.05$. The null hypothesis can be rejected.The alternative hypothesis that 1mg/day dose of orange juice delivers more tooth growth than ascorbic acid is accepted.
+
+### Hypothesis 4 - Dose 2 mg/day
+
+H4: For the dosage of 2mg/day, the orange juice and ascorbic acid supplements deliver the same tooth growth across the data set.
+```{r}
+hp4<-t.test(len~supp,data=subset(tg,dose==2),paired=FALSE,var.equal=FALSE)
+hp4$conf.int
+hp4$p.value
+```
+The confidence interval includes 0 and the p-value is greater than the significance level $\alpha=0.05$ which means we fail to reject the null hypothesis.The alternative hypothesis that 2mg/day dose of orange juice delivers more tooth growth than ascorbic acid is rejected.
+
+# Conclusions
+
+* Orange juice as supplementary method delivers more tooth growth than the ascorbic acid for dose levels of 0.5 mg/day and 1 mg/day.
+* The two supplement types deliver the same amount of tooth growth for dose amount of 2.0 mg/day. 
+* For the entire dataset, the data does not provide strong evidence that the average in tooth length across the two supplement types is different from 0.
+
+These conclusion are based on the following assumptions:
+
+* The guinea pigs are representative for the popuation of guinea pigs - since we are dealing with small sample size n=10 for each subgroup, we used a t distribution for our hyphotesiss tests and confidence intervals
+
+* The dosage and supplement were randomly assigned - we assume that the guinea pigs were randomly assigned to one of the groups
+
+* Observations come from a nearly normal distribution.
+
+The source code and the associated files of this report can be found on [GitHub](https://github.com/FilomenaC/Statistical-Inference).
